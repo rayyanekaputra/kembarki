@@ -38,6 +38,14 @@ python kembarki.py ./folder/you/want
 
 thats it. it makes `kembarki-report.html` right where you ran it, open it in your browser.
 
+wanna try it first before pointing it at your real backups? theres a sample folder in the repo, 3 levels deep with a bunch of animal .txt files duplicated everywhere (yes the monkey goes uu aa). theres even a `backups45` sitting inside `backups1/2024`, just like real life.
+
+```
+python kembarki.py ./sample_folder_to_test
+```
+
+you should get 18 duplicate names, some **same size** and some **size differs**.
+
 ### 2. advanced usage
 
 ```

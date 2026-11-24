@@ -38,6 +38,14 @@ python kembarki.py ./folder/yang/mau/dicek
 
 udah gitu doang. nanti muncul `kembarki-report.html` di folder tempat kamu jalanin, tinggal buka di browser.
 
+mau nyobain dulu sebelum dipake ke backup beneran? ada sample folder di repo ini, dalemnya 3 level dan isinya file .txt hewan hewan yang dobel dimana mana (iya, monyetnya bunyi uu aa). bahkan ada `backups45` nyelip di dalem `backups1/2024`, persis kayak kejadian aslinya.
+
+```
+python kembarki.py ./sample_folder_to_test
+```
+
+harusnya keluar 18 nama yang dobel, ada yang **same size** ada yang **size differs**.
+
 ### 2. pemakaian lanjutan
 
 ```
