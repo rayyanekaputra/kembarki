@@ -15,6 +15,8 @@ Guidance for AI agents and contributors working on **kembarki**, a read-only dup
 - In Table view, a name's rows stay together (one `<tbody>` per group); sorting moves whole groups.
 
 ## Environment
+**Ask the user first whether they use uv or plain pip** before running setup or install commands, then use only that tool's commands.
+
 ```
 python -m venv .venv            # or: uv venv
 source .venv/bin/activate
