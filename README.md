@@ -2,6 +2,8 @@
 
 english · [bahasa indonesia](README.id.md)
 
+![preview](preview.gif)
+
 ## about the project
 
 kembarki means "theyre the same". i made this because my backups had soooo many dups lol. i have these files in the parent folder but i have the same shit in the nested dir too. imagine having like backups1, backups2, and inside one of them theres backups45 you accidentally pasted in there. yeah.

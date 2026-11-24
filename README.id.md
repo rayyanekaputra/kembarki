@@ -2,6 +2,8 @@
 
 [english](README.md) · bahasa indonesia
 
+![preview](preview.gif)
+
 ## tentang project ini
 
 kembarki artinya "mereka sama". aku bikin ini soalnya backup aku dupnya banyak bgt wkwk. file filenya ada di folder utama, tapi ternyata hal yang sama persis ada lagi di folder dalemnya. bayangin punya backups1, backups2, terus di dalemnya ada backups45 yang ga sengaja kamu paste disitu. ya gitu deh.
