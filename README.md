@@ -49,11 +49,14 @@ you should get 18 duplicate names, some **same size** and some **size differs**.
 ### 2. advanced usage
 
 ```
-python kembarki.py /mnt/backup /mnt/archive -o dupes.html
-python kembarki.py /mnt/backup --ignore-case --min-size 10M --exclude .git --exclude "*.tmp"
-python kembarki.py /mnt/backup --layout table
-python kembarki.py /mnt/backup --csv dupes.csv --json dupes.json
+python kembarki.py ./sample_folder_to_test/backups1 ./sample_folder_to_test/backups2 -o dupes.html
+python kembarki.py ./sample_folder_to_test --exclude backups45 --exclude "notes.txt"
+python kembarki.py ./sample_folder_to_test --min-size 30B --ignore-case
+python kembarki.py ./sample_folder_to_test --layout table
+python kembarki.py ./sample_folder_to_test --csv dupes.csv --json dupes.json
 ```
+
+first one compares two folders against each other, second one skips the `backups45` mess and all the notes, third one only looks at files 30 bytes and up.
 
 | option | what it does |
 |---|---|

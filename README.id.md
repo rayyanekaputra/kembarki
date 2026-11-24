@@ -49,11 +49,14 @@ harusnya keluar 18 nama yang dobel, ada yang **same size** ada yang **size diffe
 ### 2. pemakaian lanjutan
 
 ```
-python kembarki.py /mnt/backup /mnt/archive -o dupes.html
-python kembarki.py /mnt/backup --ignore-case --min-size 10M --exclude .git --exclude "*.tmp"
-python kembarki.py /mnt/backup --layout table
-python kembarki.py /mnt/backup --csv dupes.csv --json dupes.json
+python kembarki.py ./sample_folder_to_test/backups1 ./sample_folder_to_test/backups2 -o dupes.html
+python kembarki.py ./sample_folder_to_test --exclude backups45 --exclude "notes.txt"
+python kembarki.py ./sample_folder_to_test --min-size 30B --ignore-case
+python kembarki.py ./sample_folder_to_test --layout table
+python kembarki.py ./sample_folder_to_test --csv dupes.csv --json dupes.json
 ```
+
+yang pertama ngebandingin dua folder sekaligus, yang kedua skip `backups45` sama semua notes, yang ketiga cuma ngecek file yang 30 byte ke atas.
 
 | opsi | fungsinya |
 |---|---|
