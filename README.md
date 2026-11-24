@@ -28,7 +28,7 @@ python kembarki.py /mnt/backup --csv dupes.csv --json dupes.json
 | `--layout grouped` or `table` | which view the report opens in (switchable in the page) |
 | `-q` | no progress output |
 
-The report lists every name that appears more than once, with each copy's size, modified time and location. Each group is labelled **same size** (probably the same file) or **size differs**. Groups are sorted by reclaimable space, and the page has search and sortable columns.
+The report lists every name that appears more than once, with each copy's size, modified time and location. Each group is labelled **same size** (probably the same file) or **size differs**. Groups are sorted by reclaimable space, and the page has a search box, file type and size-match filters, and sortable columns.
 
 Matching is by name only. Content hashing is in the backlog (see `PLAN.md`).
 

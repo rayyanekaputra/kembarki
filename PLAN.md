@@ -21,7 +21,7 @@ Plus: modified time per instance, wasted space per group ((count − 1) × size)
   - One collapsible section per group, sorted by wasted space (largest first).
   - Table per group: size, modified time, full path.
   - Badge: `same size` / `size differs`.
-  - Client-side search/filter box and sortable columns.
+  - Client-side search box, filters for file type (Video, Image, Audio, Document, Archive, Code, Other) and size match (Any, Same size, Size differs), and sortable columns.
   - Two layouts, toggled in the page (choice remembered): **Grouped** (collapsible per name) and **Table** (one flat sortable table, one row per file). `--layout` sets the default.
 - Optional: `--csv` / `--json` for machine use.
 - Short summary also printed to terminal.

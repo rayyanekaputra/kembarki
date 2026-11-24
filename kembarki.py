@@ -230,7 +230,10 @@ input[type=search] { flex:1; min-width:240px; padding:.375rem .75rem; font:inher
   transition:border-color .15s, box-shadow .15s; }
 input[type=search]:focus { outline:0; border-color:rgba(var(--bs-primary-rgb),.6); box-shadow:0 0 0 .25rem rgba(var(--bs-primary-rgb),.25); }
 input[type=checkbox] { width:1em; height:1em; accent-color:var(--bs-primary); vertical-align:-.125em; margin:0 .35rem 0 0; }
-label { font-size:.95rem; user-select:none; }
+select { font:inherit; font-size:.9375rem; padding:.375rem 2.25rem .375rem .75rem; color:var(--bs-body-color); cursor:pointer;
+  background:var(--bs-body-bg) url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e") no-repeat right .75rem center/16px 12px;
+  border:1px solid var(--bs-border-color); border-radius:.375rem; appearance:none; transition:border-color .15s, box-shadow .15s; }
+select:focus { outline:0; border-color:rgba(var(--bs-primary-rgb),.6); box-shadow:0 0 0 .25rem rgba(var(--bs-primary-rgb),.25); }
 button { font:inherit; font-size:.875rem; font-weight:500; padding:.375rem .75rem; line-height:1.5; cursor:pointer;
   color:var(--bs-body-color); background:var(--bs-body-bg); border:1px solid var(--bs-border-color); border-radius:.375rem;
   transition:background-color .15s, color .15s, border-color .15s; }
@@ -242,7 +245,7 @@ button:focus-visible { outline:0; box-shadow:0 0 0 .25rem rgba(var(--bs-primary-
 .seg button:last-child { border-radius:0 .375rem .375rem 0; }
 .seg button.on { background:var(--bs-primary); color:#fff; }
 .gonly { display:inline-flex; gap:.5rem; }
-#shown { font-size:.875rem; margin-left:auto; }
+#shown { font-size:.875rem; margin-left:auto; min-width:10rem; text-align:right; font-variant-numeric:tabular-nums; }
 
 /* status text */
 .status { white-space:nowrap; font-size:.875rem; font-weight:500; }
@@ -282,7 +285,8 @@ details thead th { border-bottom-width:1px; color:var(--bs-secondary-color); fon
 #flat .sub { font-size:.8125rem; }
 #flat td.num { width:1%; }
 th[style] { cursor:default !important; } th[style]:hover { color:inherit; }
-body[data-view=grouped] #flat, body[data-view=table] #grouped, body[data-view=table] .gonly { display:none; }
+body[data-view=grouped] #flat, body[data-view=table] #grouped { display:none; }
+body[data-view=table] .gonly { visibility:hidden; }
 </style>
 </head>
 <body data-view="$view">
@@ -297,9 +301,10 @@ body[data-view=grouped] #flat, body[data-view=table] #grouped, body[data-view=ta
   <div class="stat"><b>$errors</b><span class="muted">unreadable entries</span></div>
 </div>
 <div class="toolbar">
-  <input type="search" id="q" placeholder="Filter by name or path…">
-  <label><input type="checkbox" id="sameOnly"> same size only</label>
   <span class="seg"><button data-view="grouped">Grouped</button><button data-view="table">Table</button></span>
+  <input type="search" id="q" placeholder="Filter by name or path…">
+  <select id="ftype" aria-label="File type"><option value="">All types</option>$type_options</select>
+  <select id="fsize" aria-label="Size match"><option value="">Any size</option><option value="1">Same size</option><option value="0">Size differs</option></select>
   <span class="gonly"><button id="expand">Expand all</button> <button id="collapse">Collapse all</button></span>
   <span class="muted" id="shown"></span>
 </div>
@@ -317,23 +322,24 @@ function setView(v) {
   filter();
 }
 document.querySelectorAll('.seg button').forEach(b => b.onclick = () => setView(b.dataset.view));
-const q = document.getElementById('q'), same = document.getElementById('sameOnly'), shown = document.getElementById('shown');
+const q = document.getElementById('q'), ftype = document.getElementById('ftype'), fsize = document.getElementById('fsize'), shown = document.getElementById('shown');
+const match = (el, t) => (!t || el.dataset.search.includes(t)) && (!ftype.value || el.dataset.type === ftype.value) && (!fsize.value || el.dataset.same === fsize.value);
 function filter() {
   const t = q.value.toLowerCase(); let n = 0;
   for (const g of groups) {
-    const ok = (!t || g.dataset.search.includes(t)) && (!same.checked || g.dataset.same === '1');
+    const ok = match(g, t);
     g.hidden = !ok; if (ok) n++;
   }
   let m = 0;
   for (const r of flatGroups) {
-    const ok = (!t || r.dataset.search.includes(t)) && (!same.checked || r.dataset.same === '1');
+    const ok = match(r, t);
     r.hidden = !ok; if (ok) m++;
   }
   shown.textContent = document.body.dataset.view === 'table'
     ? m + ' / ' + flatGroups.length + ' names shown'
     : n + ' / ' + groups.length + ' names shown';
 }
-q.addEventListener('input', filter); same.addEventListener('change', filter);
+q.addEventListener('input', filter); ftype.addEventListener('change', filter); fsize.addEventListener('change', filter);
 document.getElementById('expand').onclick = () => groups.forEach(g => { if (!g.hidden) g.open = true; });
 document.getElementById('collapse').onclick = () => groups.forEach(g => g.open = false);
 document.querySelectorAll('#flat th[data-k]').forEach(th => th.addEventListener('click', () => {
@@ -365,6 +371,31 @@ setView(saved || document.body.dataset.view);
 """)
 
 
+_TYPES = {
+    "Video": "mp4 mkv avi mov wmv flv webm m4v mpg mpeg ts 3gp vob",
+    "Image": "jpg jpeg png gif bmp webp tif tiff heic heif raw cr2 nef arw dng svg ico psd",
+    "Audio": "mp3 flac wav aac ogg m4a wma opus aiff alac",
+    "Document": "pdf doc docx xls xlsx ppt pptx odt ods odp txt md rtf csv epub",
+    "Archive": "zip rar 7z tar gz bz2 xz tgz iso dmg",
+    "Code": "py js ts html css json xml yml yaml sh c cpp h java go rs php rb sql",
+}
+_EXT_TYPE = {ext: t for t, exts in _TYPES.items() for ext in exts.split()}
+TYPE_ORDER = [*_TYPES, "Other"]
+
+
+def file_type(name: str) -> str:
+    ext = name.rsplit(".", 1)[-1].lower() if "." in name.strip(".") else ""
+    return _EXT_TYPE.get(ext, "Other")
+
+
+def _type_options(groups: list[DuplicateGroup]) -> str:
+    counts: dict[str, int] = {}
+    for g in groups:
+        t = file_type(g.name)
+        counts[t] = counts.get(t, 0) + 1
+    return "".join(f'<option value="{t}">{t} ({counts[t]:,})</option>' for t in TYPE_ORDER if t in counts)
+
+
 def _group_html(g: DuplicateGroup) -> str:
     rows = "\n".join(
         f'<tr data-size="{e.size}" data-mtime="{e.mtime}" data-path="{escape(e.path)}">'
@@ -376,7 +407,7 @@ def _group_html(g: DuplicateGroup) -> str:
     badge = '<span class="status ok">same size</span>' if g.same_size else '<span class="status warn">size differs</span>'
     search = escape(" ".join([g.name, *(e.path for e in g.entries)]).lower())
     return (
-        f'<details class="group" data-same="{int(g.same_size)}" data-search="{search}">'
+        f'<details class="group" data-same="{int(g.same_size)}" data-type="{file_type(g.name)}" data-search="{search}">'
         f'<summary><span class="name">{escape(g.name)}</span>{badge}'
         f'<span class="muted">{g.count} copies · {human_size(g.wasted)} reclaimable</span></summary>'
         f'<table><thead><tr><th data-k="size">Size</th><th data-k="mtime">Modified</th><th data-k="path">Location</th></tr></thead>'
@@ -408,7 +439,7 @@ def _flat_html(groups: list[DuplicateGroup]) -> str:
                 f'<td class="path">{escape(e.path)}</td></tr>'
             )
         bodies.append(
-            f'<tbody data-name="{escape(g.name.lower())}" data-same="{int(g.same_size)}" '
+            f'<tbody data-name="{escape(g.name.lower())}" data-same="{int(g.same_size)}" data-type="{file_type(g.name)}" '
             f'data-size="{max(e.size for e in g.entries)}" data-mtime="{max(e.mtime for e in g.entries)}" '
             f'data-wasted="{g.wasted}" data-search="{search}">{"".join(rows)}</tbody>'
         )
@@ -433,6 +464,7 @@ def write_html(groups: list[DuplicateGroup], path: str, meta: dict, view: str = 
         body=body,
         flat=_flat_html(groups),
         view=view,
+        type_options=_type_options(groups),
     )
     with open(path, "w", encoding="utf-8", errors="replace") as f:
         f.write(html)

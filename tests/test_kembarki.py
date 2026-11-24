@@ -126,3 +126,23 @@ def test_html_table_layout(tmp_path):
     html = out.read_text()
     assert 'data-view="table"' in html
     assert html.count("rowspan=\"2\"") == 2 and "in extra copies" in html
+
+
+def test_file_type():
+    from kembarki import file_type
+    assert file_type("Movie.MKV") == "Video"
+    assert file_type("a.tar.gz") == "Archive"
+    assert file_type("README") == "Other"
+    assert file_type(".bashrc") == "Other"
+
+
+def test_html_filters(tmp_path):
+    src = tmp_path / "src"
+    for d in "ab":
+        make(src, f"{d}/v.mp4")
+        make(src, f"{d}/p.jpg")
+    out = tmp_path / "r.html"
+    main([str(src), "-o", str(out), "-q"])
+    html = out.read_text()
+    assert 'data-type="Video"' in html and '<option value="Image">Image (1)</option>' in html
+    assert 'id="fsize"' in html
