@@ -221,9 +221,22 @@ th { cursor:pointer; user-select:none; font-weight:600; color:var(--muted); }
 td.num { font-variant-numeric:tabular-nums; white-space:nowrap; }
 td.path { font-family:ui-monospace, monospace; font-size:13px; word-break:break-all; }
 .empty { padding:40px; text-align:center; }
+.seg { display:inline-flex; border:1px solid var(--line); border-radius:6px; overflow:hidden; }
+.seg button { border:0; border-radius:0; }
+.seg button.on { background:var(--fg); color:var(--bg); }
+#flat { background:var(--card); border:1px solid var(--line); border-radius:8px; overflow:hidden; }
+#flat thead th { position:sticky; top:0; background:var(--card); border-top:0; }
+#flat tbody + tbody tr:first-child td { border-top:2px solid var(--muted); }
+#flat td[rowspan] { background:color-mix(in srgb, var(--fg) 3%, transparent); }
+#flat td.name { min-width:180px; max-width:280px; word-break:break-all; }
+#flat td.name > div:first-child { font-weight:600; }
+#flat .sub { font-size:12px; }
+#flat td.num { width:1%; }
+th[data-dir=asc]::after { content:" ▲"; } th[data-dir=desc]::after { content:" ▼"; }
+body[data-view=grouped] #flat, body[data-view=table] #grouped, body[data-view=table] .gonly { display:none; }
 </style>
 </head>
-<body>
+<body data-view="$view">
 <main>
 <h1>kembarki duplicate report</h1>
 <div class="muted">Scanned $roots · $when · read-only (no files were changed)</div>
@@ -237,13 +250,24 @@ td.path { font-family:ui-monospace, monospace; font-size:13px; word-break:break-
 <div class="toolbar">
   <input type="search" id="q" placeholder="Filter by name or path…">
   <label><input type="checkbox" id="sameOnly"> same size only</label>
-  <button id="expand">Expand all</button><button id="collapse">Collapse all</button>
+  <span class="seg"><button data-view="grouped">Grouped</button><button data-view="table">Table</button></span>
+  <span class="gonly"><button id="expand">Expand all</button> <button id="collapse">Collapse all</button></span>
   <span class="muted" id="shown"></span>
 </div>
-$body
+<div id="grouped">$body</div>
+$flat
 </main>
 <script>
 const groups = [...document.querySelectorAll('details.group')];
+const flatGroups = [...document.querySelectorAll('#flat tbody')];
+const KEY = 'kembarki-view';
+function setView(v) {
+  document.body.dataset.view = v;
+  document.querySelectorAll('.seg button').forEach(b => b.classList.toggle('on', b.dataset.view === v));
+  try { localStorage.setItem(KEY, v); } catch (e) {}
+  filter();
+}
+document.querySelectorAll('.seg button').forEach(b => b.onclick = () => setView(b.dataset.view));
 const q = document.getElementById('q'), same = document.getElementById('sameOnly'), shown = document.getElementById('shown');
 function filter() {
   const t = q.value.toLowerCase(); let n = 0;
@@ -251,22 +275,41 @@ function filter() {
     const ok = (!t || g.dataset.search.includes(t)) && (!same.checked || g.dataset.same === '1');
     g.hidden = !ok; if (ok) n++;
   }
-  shown.textContent = n + ' / ' + groups.length + ' shown';
+  let m = 0;
+  for (const r of flatGroups) {
+    const ok = (!t || r.dataset.search.includes(t)) && (!same.checked || r.dataset.same === '1');
+    r.hidden = !ok; if (ok) m++;
+  }
+  shown.textContent = document.body.dataset.view === 'table'
+    ? m + ' / ' + flatGroups.length + ' names shown'
+    : n + ' / ' + groups.length + ' names shown';
 }
 q.addEventListener('input', filter); same.addEventListener('change', filter);
 document.getElementById('expand').onclick = () => groups.forEach(g => { if (!g.hidden) g.open = true; });
 document.getElementById('collapse').onclick = () => groups.forEach(g => g.open = false);
-document.querySelectorAll('th[data-k]').forEach(th => th.addEventListener('click', () => {
+document.querySelectorAll('#flat th[data-k]').forEach(th => th.addEventListener('click', () => {
+  const table = th.closest('table'), k = th.dataset.k;
+  const dir = th.dataset.dir = th.dataset.dir === 'asc' ? 'desc' : 'asc';
+  th.closest('tr').querySelectorAll('th').forEach(o => { if (o !== th) delete o.dataset.dir; });
+  [...table.tBodies].sort((a, b) => {
+    const x = a.dataset[k], y = b.dataset[k];
+    const c = k === 'name' ? x.localeCompare(y) : x - y;
+    return dir === 'asc' ? c : -c;
+  }).forEach(b => table.appendChild(b));
+}));
+document.querySelectorAll('#grouped th[data-k]').forEach(th => th.addEventListener('click', () => {
   const tbody = th.closest('table').tBodies[0], k = th.dataset.k;
   const dir = th.dataset.dir = th.dataset.dir === 'asc' ? 'desc' : 'asc';
   const rows = [...tbody.rows].sort((a, b) => {
     const x = a.dataset[k], y = b.dataset[k];
-    const c = k === 'path' ? x.localeCompare(y) : x - y;
+    const c = (k === 'path' || k === 'name') ? x.localeCompare(y) : x - y;
     return dir === 'asc' ? c : -c;
   });
+  th.closest('tr').querySelectorAll('th').forEach(o => { if (o !== th) delete o.dataset.dir; });
   rows.forEach(r => tbody.appendChild(r));
 }));
-filter();
+let saved = null; try { saved = localStorage.getItem(KEY); } catch (e) {}
+setView(saved || document.body.dataset.view);
 </script>
 </body>
 </html>
@@ -292,7 +335,43 @@ def _group_html(g: DuplicateGroup) -> str:
     )
 
 
-def write_html(groups: list[DuplicateGroup], path: str, meta: dict) -> None:
+def _flat_html(groups: list[DuplicateGroup]) -> str:
+    """Table layout: one <tbody> per name; name/status cells span that group's rows."""
+    if not groups:
+        return ""
+    bodies = []
+    for g in groups:
+        n = g.count
+        status = '<span class="badge ok">same size</span>' if g.same_size else '<span class="badge warn">size differs</span>'
+        search = escape(" ".join([g.name, *(e.path for e in g.entries)]).lower())
+        rows = []
+        for i, e in enumerate(g.entries):
+            lead = (
+                f'<td class="name" rowspan="{n}"><div>{escape(g.name)}</div>'
+                f'<div class="muted sub">{n} copies</div>'
+                f'<div class="muted sub">{human_size(g.wasted)} in extra copies</div></td>'
+                f'<td rowspan="{n}">{status}</td>'
+            ) if i == 0 else ""
+            rows.append(
+                f"<tr>{lead}"
+                f'<td class="num" title="{e.size:,} bytes">{human_size(e.size)}</td>'
+                f'<td class="num">{fmt_time(e.mtime)}</td>'
+                f'<td class="path">{escape(e.path)}</td></tr>'
+            )
+        bodies.append(
+            f'<tbody data-name="{escape(g.name.lower())}" data-same="{int(g.same_size)}" '
+            f'data-size="{max(e.size for e in g.entries)}" data-mtime="{max(e.mtime for e in g.entries)}" '
+            f'data-wasted="{g.wasted}" data-search="{search}">{"".join(rows)}</tbody>'
+        )
+    return (
+        '<table id="flat"><thead><tr>'
+        '<th data-k="name">Name</th><th data-k="same">Status</th><th data-k="size">Size</th>'
+        '<th data-k="mtime">Modified</th><th style="cursor:default">Location</th>'
+        f'</tr></thead>{"".join(bodies)}</table>'
+    )
+
+
+def write_html(groups: list[DuplicateGroup], path: str, meta: dict, view: str = "grouped") -> None:
     body = "\n".join(_group_html(g) for g in groups) or '<div class="empty muted">No duplicate file names found.</div>'
     html = _PAGE.substitute(
         roots=escape(", ".join(meta["roots"])),
@@ -303,6 +382,8 @@ def write_html(groups: list[DuplicateGroup], path: str, meta: dict) -> None:
         wasted=human_size(sum(g.wasted for g in groups)),
         errors=f'{meta["errors"]:,}',
         body=body,
+        flat=_flat_html(groups),
+        view=view,
     )
     with open(path, "w", encoding="utf-8", errors="replace") as f:
         f.write(html)
@@ -330,6 +411,8 @@ def build_parser() -> argparse.ArgumentParser:
     )
     p.add_argument("paths", nargs="+", help="directories to scan")
     p.add_argument("-o", "--output", default="kembarki-report.html", help="HTML report path (default: %(default)s)")
+    p.add_argument("--layout", choices=["grouped", "table"], default="grouped",
+                   help="initial report layout; can be switched in the page (default: %(default)s)")
     p.add_argument("--csv", metavar="FILE", help="also write a CSV report")
     p.add_argument("--json", metavar="FILE", help="also write a JSON report")
     p.add_argument("--ignore-case", action="store_true", help="treat Photo.JPG and photo.jpg as the same name")
@@ -366,7 +449,7 @@ def main(argv: list[str] | None = None) -> int:
         "errors": stats.errors,
         "ignore_case": args.ignore_case,
     }
-    write_html(groups, args.output, meta)
+    write_html(groups, args.output, meta, view=args.layout)
     if args.csv:
         write_csv(groups, args.csv)
     if args.json:

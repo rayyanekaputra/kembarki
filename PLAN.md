@@ -22,6 +22,7 @@ Plus: modified time per instance, wasted space per group ((count − 1) × size)
   - Table per group: size, modified time, full path.
   - Badge: `same size` / `size differs`.
   - Client-side search/filter box and sortable columns.
+  - Two layouts, toggled in the page (choice remembered): **Grouped** (collapsible per name) and **Table** (one flat sortable table, one row per file). `--layout` sets the default.
 - Optional: `--csv` / `--json` for machine use.
 - Short summary also printed to terminal.
 

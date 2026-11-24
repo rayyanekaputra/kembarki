@@ -115,3 +115,14 @@ def test_parse_size():
     assert parse_size("10") == 10
     assert parse_size("1K") == 1024
     assert parse_size("1.5mb") == int(1.5 * 1024**2)
+
+
+def test_html_table_layout(tmp_path):
+    src = tmp_path / "src"
+    make(src, "a/v.mp4")
+    make(src, "b/v.mp4")
+    out = tmp_path / "r.html"
+    main([str(src), "-o", str(out), "--layout", "table", "-q"])
+    html = out.read_text()
+    assert 'data-view="table"' in html
+    assert html.count("rowspan=\"2\"") == 2 and "in extra copies" in html
