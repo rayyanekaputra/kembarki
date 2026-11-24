@@ -16,7 +16,7 @@ Plus: modified time per instance, wasted space per group ((count − 1) × size)
 - No content hashing for now (too slow for 10 GB+ videos) — see Backlog.
 
 ## Output
-- **Default: HTML report** (`kembarki-report.html`), single self-contained file (inline CSS/JS, no external deps), opens in any browser.
+- **Default: HTML report** (`kembarki-report.html`), single file with inline CSS/JS. It has a Bootstrap 5 look with Inter loaded from Google Fonts, falling back to the system font offline.
   - Summary header: root path(s), scan time, files scanned, duplicate groups, reclaimable space.
   - One collapsible section per group, sorted by wasted space (largest first).
   - Table per group: size, modified time, full path.

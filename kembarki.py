@@ -196,43 +196,92 @@ _PAGE = Template("""<!doctype html>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>kembarki report</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-:root { color-scheme: light dark; --bg:#fafafa; --fg:#1d1d1f; --muted:#6b6b70; --card:#fff; --line:#e3e3e6; --ok:#1a7f37; --warn:#b35900; }
-@media (prefers-color-scheme: dark) { :root { --bg:#141416; --fg:#ececf0; --muted:#9a9aa2; --card:#1d1d21; --line:#2e2e34; --ok:#4ac26b; --warn:#f0a040; } }
-* { box-sizing: border-box; }
-body { margin:0; font:14px/1.5 system-ui, sans-serif; background:var(--bg); color:var(--fg); }
-main { max-width:1100px; margin:0 auto; padding:24px; }
-h1 { font-size:22px; margin:0 0 4px; }
-.muted { color:var(--muted); }
-.stats { display:flex; flex-wrap:wrap; gap:12px; margin:16px 0; }
-.stat { background:var(--card); border:1px solid var(--line); border-radius:8px; padding:10px 14px; min-width:150px; }
-.stat b { display:block; font-size:20px; font-variant-numeric:tabular-nums; }
-.toolbar { display:flex; gap:12px; align-items:center; margin:16px 0; flex-wrap:wrap; }
-input[type=search] { flex:1; min-width:220px; padding:8px 10px; border:1px solid var(--line); border-radius:6px; background:var(--card); color:var(--fg); font:inherit; }
-button { padding:7px 12px; border:1px solid var(--line); border-radius:6px; background:var(--card); color:var(--fg); font:inherit; cursor:pointer; }
-details { background:var(--card); border:1px solid var(--line); border-radius:8px; margin-bottom:8px; }
-summary { padding:10px 14px; cursor:pointer; display:flex; gap:12px; align-items:baseline; flex-wrap:wrap; }
-summary .name { font-weight:600; word-break:break-all; }
-.badge { font-size:12px; padding:1px 8px; border-radius:10px; border:1px solid currentColor; }
-.badge.ok { color:var(--ok); } .badge.warn { color:var(--warn); }
-table { width:100%; border-collapse:collapse; }
-th, td { text-align:left; padding:6px 14px; border-top:1px solid var(--line); vertical-align:top; }
-th { cursor:pointer; user-select:none; font-weight:600; color:var(--muted); }
+/* Bootstrap 5.3-style tokens (light + dark) */
+:root {
+  color-scheme: light;
+  --bs-body-bg:#fff; --bs-body-color:#212529; --bs-secondary-color:rgba(33,37,41,.75);
+  --bs-tertiary-bg:#f8f9fa; --bs-border-color:#dee2e6; --bs-primary:#0d6efd; --bs-primary-rgb:13,110,253;
+  --bs-success:#198754; --bs-warning-text:#997404; --bs-striped:rgba(0,0,0,.05); --bs-hover:rgba(0,0,0,.075);
+  --bs-code:#d63384;
+}
+* { box-sizing:border-box; }
+body { margin:0; font-family:"Inter", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-size:1rem; line-height:1.5; font-weight:400; background:var(--bs-tertiary-bg); color:var(--bs-body-color);
+  -webkit-font-smoothing:antialiased; font-feature-settings:"cv11", "ss01"; }
+main { max-width:1140px; margin:0 auto; padding:2rem 1rem; }
+h1 { font-size:1.75rem; font-weight:600; letter-spacing:-.02em; margin:0 0 .25rem; }
+.muted { color:var(--bs-secondary-color); }
+
+/* stat cards */
+.stats { display:grid; grid-template-columns:repeat(auto-fit, minmax(170px, 1fr)); gap:1rem; margin:1.5rem 0; }
+.stat { background:var(--bs-body-bg); border:1px solid var(--bs-border-color); border-radius:.375rem; padding:1rem 1.25rem;
+  box-shadow:0 .125rem .25rem rgba(0,0,0,.075); }
+.stat b { display:block; font-size:1.5rem; font-weight:600; font-variant-numeric:tabular-nums; letter-spacing:-.01em; }
+.stat span { font-size:.875rem; }
+
+/* toolbar: form-control, btn, btn-group */
+.toolbar { display:flex; gap:.75rem; align-items:center; margin:0 0 1rem; flex-wrap:wrap; }
+input[type=search] { flex:1; min-width:240px; padding:.375rem .75rem; font:inherit; color:var(--bs-body-color);
+  background:var(--bs-body-bg); border:1px solid var(--bs-border-color); border-radius:.375rem;
+  transition:border-color .15s, box-shadow .15s; }
+input[type=search]:focus { outline:0; border-color:rgba(var(--bs-primary-rgb),.6); box-shadow:0 0 0 .25rem rgba(var(--bs-primary-rgb),.25); }
+input[type=checkbox] { width:1em; height:1em; accent-color:var(--bs-primary); vertical-align:-.125em; margin:0 .35rem 0 0; }
+label { font-size:.95rem; user-select:none; }
+button { font:inherit; font-size:.875rem; font-weight:500; padding:.375rem .75rem; line-height:1.5; cursor:pointer;
+  color:var(--bs-body-color); background:var(--bs-body-bg); border:1px solid var(--bs-border-color); border-radius:.375rem;
+  transition:background-color .15s, color .15s, border-color .15s; }
+button:hover { background:var(--bs-hover); }
+button:focus-visible { outline:0; box-shadow:0 0 0 .25rem rgba(var(--bs-primary-rgb),.25); }
+.seg { display:inline-flex; }
+.seg button { border-radius:0; margin-left:-1px; border-color:var(--bs-primary); color:var(--bs-primary); }
+.seg button:first-child { border-radius:.375rem 0 0 .375rem; margin-left:0; }
+.seg button:last-child { border-radius:0 .375rem .375rem 0; }
+.seg button.on { background:var(--bs-primary); color:#fff; }
+.gonly { display:inline-flex; gap:.5rem; }
+#shown { font-size:.875rem; margin-left:auto; }
+
+/* status text */
+.status { white-space:nowrap; font-size:.875rem; font-weight:500; }
+.status.ok { color:var(--bs-success); } .status.warn { color:var(--bs-warning-text); }
+
+/* tables (.table .table-hover) */
+table { width:100%; border-collapse:collapse; font-size:.9375rem; }
+th, td { text-align:left; padding:.5rem .75rem; border-bottom:1px solid var(--bs-border-color); vertical-align:top; }
+thead th { font-weight:600; border-bottom:2px solid currentColor; cursor:pointer; user-select:none; white-space:nowrap; }
+thead th:hover { color:var(--bs-primary); }
+th[data-dir=asc]::after { content:" ▲"; font-size:.7em; } th[data-dir=desc]::after { content:" ▼"; font-size:.7em; }
+tbody tr:hover > td:not([rowspan]) { background:var(--bs-hover); }
 td.num { font-variant-numeric:tabular-nums; white-space:nowrap; }
-td.path { font-family:ui-monospace, monospace; font-size:13px; word-break:break-all; }
-.empty { padding:40px; text-align:center; }
-.seg { display:inline-flex; border:1px solid var(--line); border-radius:6px; overflow:hidden; }
-.seg button { border:0; border-radius:0; }
-.seg button.on { background:var(--fg); color:var(--bg); }
-#flat { background:var(--card); border:1px solid var(--line); border-radius:8px; overflow:hidden; }
-#flat thead th { position:sticky; top:0; background:var(--card); border-top:0; }
-#flat tbody + tbody tr:first-child td { border-top:2px solid var(--muted); }
-#flat td[rowspan] { background:color-mix(in srgb, var(--fg) 3%, transparent); }
-#flat td.name { min-width:180px; max-width:280px; word-break:break-all; }
+td.path { font-family:SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; font-size:.8125rem; color:var(--bs-code); word-break:break-all; }
+
+/* grouped view: cards (.card / .card-header) */
+details { background:var(--bs-body-bg); border:1px solid var(--bs-border-color); border-radius:.375rem; margin-bottom:.75rem; overflow:hidden; }
+summary { padding:.75rem 1.25rem; cursor:pointer; display:flex; gap:.75rem; align-items:baseline; flex-wrap:wrap; list-style:none; }
+summary::-webkit-details-marker { display:none; }
+summary::before { content:"›"; display:inline-block; width:.75rem; color:var(--bs-secondary-color); transition:transform .15s; }
+details[open] > summary::before { transform:rotate(90deg); }
+details[open] > summary { background:var(--bs-tertiary-bg); border-bottom:1px solid var(--bs-border-color); }
+summary .name { font-weight:600; word-break:break-all; }
+summary .muted { font-size:.875rem; margin-left:auto; }
+details table tr:last-child td { border-bottom:0; }
+details thead th { border-bottom-width:1px; color:var(--bs-secondary-color); font-size:.8125rem; text-transform:uppercase; letter-spacing:.03em; }
+.empty { padding:3rem; text-align:center; background:var(--bs-body-bg); border:1px solid var(--bs-border-color); border-radius:.375rem; }
+
+/* table view */
+#flat { background:var(--bs-body-bg); border:1px solid var(--bs-border-color); border-radius:.375rem; border-collapse:separate; border-spacing:0; overflow:hidden; }
+#flat thead th { position:sticky; top:0; background:var(--bs-body-bg); z-index:1; }
+#flat tbody + tbody tr:first-child td { border-top:2px solid var(--bs-border-color); }
+#flat tbody:last-child tr:last-child td { border-bottom:0; }
+#flat td[rowspan] { background:var(--bs-tertiary-bg); border-right:1px solid var(--bs-border-color); }
+#flat td.name { min-width:190px; max-width:280px; word-break:break-all; }
 #flat td.name > div:first-child { font-weight:600; }
-#flat .sub { font-size:12px; }
+#flat .sub { font-size:.8125rem; }
 #flat td.num { width:1%; }
-th[data-dir=asc]::after { content:" ▲"; } th[data-dir=desc]::after { content:" ▼"; }
+th[style] { cursor:default !important; } th[style]:hover { color:inherit; }
 body[data-view=grouped] #flat, body[data-view=table] #grouped, body[data-view=table] .gonly { display:none; }
 </style>
 </head>
@@ -324,7 +373,7 @@ def _group_html(g: DuplicateGroup) -> str:
         f'<td class="path">{escape(e.path)}</td></tr>'
         for e in g.entries
     )
-    badge = '<span class="badge ok">same size</span>' if g.same_size else '<span class="badge warn">size differs</span>'
+    badge = '<span class="status ok">same size</span>' if g.same_size else '<span class="status warn">size differs</span>'
     search = escape(" ".join([g.name, *(e.path for e in g.entries)]).lower())
     return (
         f'<details class="group" data-same="{int(g.same_size)}" data-search="{search}">'
@@ -342,7 +391,7 @@ def _flat_html(groups: list[DuplicateGroup]) -> str:
     bodies = []
     for g in groups:
         n = g.count
-        status = '<span class="badge ok">same size</span>' if g.same_size else '<span class="badge warn">size differs</span>'
+        status = '<span class="status ok">same size</span>' if g.same_size else '<span class="status warn">size differs</span>'
         search = escape(" ".join([g.name, *(e.path for e in g.entries)]).lower())
         rows = []
         for i, e in enumerate(g.entries):

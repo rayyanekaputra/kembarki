@@ -5,7 +5,7 @@ Guidance for AI agents and contributors working on **kembarki**, a read-only dup
 ## Hard rules
 - **Never modify, move, rename, or delete scanned files.** The tool only reads metadata (`stat`) and writes its own report files. Do not add "fix"/"delete" features.
 - **Do not read file contents** in the default path. Hashing is backlog and must stay opt-in.
-- Default output is a **self-contained HTML** file (no CDN/external assets). Always `html.escape` paths and names.
+- Default output is a **self-contained HTML** file. The only external asset allowed is the Inter font from Google Fonts, which falls back to the system font offline. No other CDNs or external CSS/JS. Styling follows a Bootstrap 5 look, hand-written without the framework. Always `html.escape` paths and names.
 
 ## Environment
 ```
